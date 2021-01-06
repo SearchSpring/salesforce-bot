@@ -242,7 +242,7 @@ func postSlackMessage(responseURL string, responseType string, text string) erro
 }
 
 func fireChecklist(folderID string) string {
-	text := "1. Assemble the <!subteam^S01DXD4HKCHa> in the <#C01DFMK1F4M> channel\n" +
+	text := "1. Assemble the <!subteam^S01DXD4HKCH> in the <#C01DFMK1F4M> channel\n" +
 		"2. Designate fire leader, document maintainer, announcements updater\n" +
 		"3. Fire doc maintainer creates a new doc here: " + fmt.Sprintf("<https://drive.google.com/drive/folders/%s>", folderID) + "\n" +
 		"4. Post link to the fire doc\n" +
