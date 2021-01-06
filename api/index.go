@@ -136,16 +136,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		w.Write(responseJSON)
 		return
 
-	case "/feature":
-		if strings.TrimSpace(s.Text) == "help" || strings.TrimSpace(s.Text) == "" {
-			writeHelpFeature(w)
-			return
-		}
-		sendSlackMessage(env.SlackOauthToken, s.Text, s.UserID)
-		responseJSON := featureResponse(s.Text)
-		w.Write(responseJSON)
-		return
-
 	case "/meet":
 		if strings.TrimSpace(s.Text) == "help" {
 			writeHelpMeet(w)
@@ -170,15 +160,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeHelpFeature(w http.ResponseWriter) {
-	msg := &slack.Msg{
-		ResponseType: slack.ResponseTypeEphemeral,
-		Text:         "Feature usage:\n`/feature description of feature required` - submits a feature to the product team\n`/feature help` - this message",
-	}
-	json, _ := json.Marshal(msg)
-	w.Write(json)
-}
-
 func writeHelpFire(w http.ResponseWriter) {
 	msg := &slack.Msg{
 		ResponseType: slack.ResponseTypeEphemeral,
@@ -192,7 +173,15 @@ func writeHelpNebo(w http.ResponseWriter) {
 	platformsJoined := strings.ToLower(strings.Join(salesforce.Platforms, ", "))
 	msg := &slack.Msg{
 		ResponseType: slack.ResponseTypeEphemeral,
-		Text:         "Nebo usage:\n`/nebo shoes` - find all customers with shoe in the name\n`/nebo shopify` - show {" + platformsJoined + "} clients sorted by MRR\n`/nebo help` - this message",
+		Text: "Nebo usage:\n" +
+			"`/nebo shoes` - find all customers with shoe in the name\n" +
+			"`/nebo shopify` - show {" + platformsJoined + "} clients sorted by MRR\n" +
+			"`/meet <optional name>` - create a google meet link (this link has to be opened in your searchspring chrome profile or you'll end up in a different meeting :/ )\n" +
+			"`/fire` - used when our product is broken and the fire team should assemble immediately to fix it\n" +
+			"`/firedown` - used when the fire is out to produce a checklist of tasks that we forget after an intense fire\n" +
+			"`/neboidnx` - gets a Nextopia customer ID based on name or id\n" +
+			"`/neboidss` - gets a Searchspring customer ID based on name or id\n" +
+			"`/nebo help` - this message",
 	}
 	json, _ := json.Marshal(msg)
 	w.Write(json)
@@ -213,25 +202,6 @@ func writeHelpMeet(w http.ResponseWriter) {
 	}
 	json, _ := json.Marshal(msg)
 	w.Write(json)
-}
-
-func sendSlackMessage(token string, text string, authorID string) {
-	api := slack.New(token)
-	channelID, timestamp, err := api.PostMessage("G013YLWL3EX", slack.MsgOptionText("<@"+authorID+"> requests: "+text, false))
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		return
-	}
-	fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
-}
-
-func featureResponse(search string) []byte {
-	msg := &slack.Msg{
-		ResponseType: slack.ResponseTypeEphemeral,
-		Text:         "feature request submitted, we'll be in touch!",
-	}
-	json, _ := json.Marshal(msg)
-	return json
 }
 
 func meetResponse(search string) []byte {
@@ -269,14 +239,6 @@ func postSlackMessage(responseURL string, responseType string, text string) erro
 	}
 	_, err = http.Post(responseURL, "application/json", bytes.NewBuffer(json))
 	return err
-}
-
-func cleanFireTitle(title string) string {
-	title = strings.TrimSpace(title)
-	if title == "" {
-		title = "New Fire"
-	}
-	return title
 }
 
 func fireChecklist(folderID string) string {
