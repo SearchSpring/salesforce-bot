@@ -7,5 +7,5 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/nlopes/slack v0.6.0
 	github.com/simpleforce/simpleforce v0.0.0-20201016131803-2062cbbdbb89
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 )
