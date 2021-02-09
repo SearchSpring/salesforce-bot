@@ -11,6 +11,9 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/searchspring/nebo/validator"
 	"github.com/simpleforce/simpleforce"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // Platforms is a list of platforms in salesforce
@@ -195,6 +198,8 @@ func formatAccountInfos(accountInfos []*accountInfo, search string) *slack.Msg {
 		initialText = "No results for: " + search
 	}
 
+	p := message.NewPrinter(language.English)
+
 	msg := &slack.Msg{
 		ResponseType: slack.ResponseTypeInChannel,
 		Text:         initialText,
@@ -207,11 +212,11 @@ func formatAccountInfos(accountInfos []*accountInfo, search string) *slack.Msg {
 		}
 		mrr := "unknown"
 		if ai.MRR != -1 {
-			mrr = fmt.Sprintf("$%.2f", ai.MRR)
+			mrr = p.Sprintf("$%.2f", ai.MRR)
 		}
 		familymrr := "unknown"
 		if ai.FamilyMRR != -1 {
-			familymrr = fmt.Sprintf("$%.2f", ai.FamilyMRR)
+			familymrr = p.Sprintf("$%.2f", ai.FamilyMRR)
 		}
 		mrr = mrr + " (Family MRR: " + familymrr + ")"
 		text := "Rep: " + ai.Manager + "\nMRR: " + mrr + "\nPlatform: " + ai.Platform + "\nIntegration: " + ai.Integration + "\nProvider: " + ai.Provider

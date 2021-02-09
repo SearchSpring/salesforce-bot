@@ -39,11 +39,11 @@ func TestFormatAccountInfos(t *testing.T) {
 	require.Nil(t, err)
 	require.True(t, strings.Contains(msg.Text, "search term"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Rep: Ashley Hilton"))
-	require.True(t, strings.Contains(msg.Attachments[0].Text, "MRR: $3955.17"))
+	require.True(t, strings.Contains(msg.Attachments[0].Text, "MRR: $3,955.17"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Platform: Custom"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Integration: v3"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Provider: Searchspring"))
-	require.True(t, strings.Contains(msg.Attachments[0].Text, "Family MRR: $14858.54"))
+	require.True(t, strings.Contains(msg.Attachments[0].Text, "Family MRR: $14,858.54"))
 	require.Equal(t, "fabletics.com (Not active) (SiteId: wub9gl)", msg.Attachments[0].AuthorName)
 	require.Equal(t, "#3A23AD", msg.Attachments[0].Color)
 }
