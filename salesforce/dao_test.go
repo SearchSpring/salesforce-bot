@@ -23,7 +23,8 @@ func createQueryResults() *simpleforce.QueryResult {
 				"Chargify_MRR__c": 3955.17,
 				"Integration_Type__c":"v3",
 				"Chargify_Source__c":"Searchspring",
-				"Platform__c":"Custom"} 
+				"Platform__c":"Custom",
+				"Tracking_Code__c": "wub9gl"} 
 			]
 		}`), qr)
 	return qr
@@ -43,7 +44,7 @@ func TestFormatAccountInfos(t *testing.T) {
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Integration: v3"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Provider: Searchspring"))
 	require.True(t, strings.Contains(msg.Attachments[0].Text, "Family MRR: $14858.54"))
-	require.Equal(t, "fabletics.com (Not active)", msg.Attachments[0].AuthorName)
+	require.Equal(t, "fabletics.com (Not active) (SiteId: wub9gl)", msg.Attachments[0].AuthorName)
 	require.Equal(t, "#3A23AD", msg.Attachments[0].Color)
 }
 
