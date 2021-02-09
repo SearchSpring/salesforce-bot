@@ -8,4 +8,6 @@ require (
 	github.com/nlopes/slack v0.6.0
 	github.com/simpleforce/simpleforce v0.0.0-20201016131803-2062cbbdbb89
 	github.com/stretchr/testify v1.7.0
+
+	golang.org/x/text v0.3.5
 )
