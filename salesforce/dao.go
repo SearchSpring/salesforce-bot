@@ -37,6 +37,7 @@ type accountInfo struct {
 	Platform    string
 	Integration string
 	Provider    string
+	SiteId      string
 }
 
 // DAO acts as the salesforce DAO
@@ -79,7 +80,7 @@ func (s *DAOImpl) Query(search string) ([]byte, error) {
 
 	sanitized := reg.ReplaceAllString(search, "")
 
-	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c " +
+	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c, Tracking_Code__c " +
 		"FROM Account WHERE Type IN ('Customer', 'Inactive Customer') " +
 		"AND (Website LIKE '%" + sanitized + "%' OR Platform__c LIKE '%" + sanitized +
 		"%' OR Tracking_Code__c = '" + sanitized + "') ORDER BY Chargify_MRR__c DESC"
@@ -98,7 +99,7 @@ func (s *DAOImpl) IDQuery(search string) ([]byte, error) {
 
 	sanitized := reg.ReplaceAllString(search, "")
 
-	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c " +
+	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c, Tracking_Code__c " +
 		"FROM Account WHERE Type IN ('Customer', 'Inactive Customer') AND Tracking_Code__c = '" + sanitized + "' ORDER BY Chargify_MRR__c DESC"
 	result, err := s.Client.Query(q)
 	if err != nil {
@@ -142,6 +143,10 @@ func (s *DAOImpl) ResultToMessage(search string, result *simpleforce.QueryResult
 		if record["Family_MRR__c"] != nil {
 			familymrr = record["Family_MRR__c"].(float64)
 		}
+		siteId := "unknown"
+		if record["Tracking_Code__c"] != nil {
+			siteId = fmt.Sprintf("%s", record["Tracking_Code__c"])
+		}
 
 		accounts = append(accounts, &accountInfo{
 			Website:     fmt.Sprintf("%s", record["Website"]),
@@ -152,6 +157,7 @@ func (s *DAOImpl) ResultToMessage(search string, result *simpleforce.QueryResult
 			Platform:    platform,
 			Integration: integration,
 			Provider:    provider,
+			SiteId:      siteId,
 		})
 	}
 	accounts = cleanAccounts(accounts)
@@ -212,7 +218,7 @@ func formatAccountInfos(accountInfos []*accountInfo, search string) *slack.Msg {
 		msg.Attachments = append(msg.Attachments, slack.Attachment{
 			Color:      "#" + color,
 			Text:       text,
-			AuthorName: ai.Website + " (" + ai.Active + ")",
+			AuthorName: ai.Website + " (" + ai.Active + ") (SiteId: " + ai.SiteId + ")",
 		})
 	}
 	return msg
