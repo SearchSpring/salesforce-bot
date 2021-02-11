@@ -41,6 +41,8 @@ type accountInfo struct {
 	Integration string
 	Provider    string
 	SiteId      string
+	City        string
+	State       string
 }
 
 // DAO acts as the salesforce DAO
@@ -54,6 +56,8 @@ type DAO interface {
 type DAOImpl struct {
 	Client *simpleforce.Client
 }
+
+const selectFields = "Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c, Tracking_Code__c, BillingCity, BillingCountry, BillingState"
 
 // NewDAO returns the salesforce DAO
 func NewDAO(sfURL string, sfUser string, sfPassword string, sfToken string) DAO {
@@ -83,7 +87,7 @@ func (s *DAOImpl) Query(search string) ([]byte, error) {
 
 	sanitized := reg.ReplaceAllString(search, "")
 
-	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c, Tracking_Code__c " +
+	q := "SELECT " + selectFields + " " +
 		"FROM Account WHERE Type IN ('Customer', 'Inactive Customer') " +
 		"AND (Website LIKE '%" + sanitized + "%' OR Platform__c LIKE '%" + sanitized +
 		"%' OR Tracking_Code__c = '" + sanitized + "') ORDER BY Chargify_MRR__c DESC"
@@ -102,7 +106,7 @@ func (s *DAOImpl) IDQuery(search string) ([]byte, error) {
 
 	sanitized := reg.ReplaceAllString(search, "")
 
-	q := "SELECT Type, Website, CS_Manager__r.Name, Family_MRR__c, Chargify_MRR__c, Platform__c, Integration_Type__c, Chargify_Source__c, Tracking_Code__c " +
+	q := "SELECT " + selectFields + " " +
 		"FROM Account WHERE Type IN ('Customer', 'Inactive Customer') AND Tracking_Code__c = '" + sanitized + "' ORDER BY Chargify_MRR__c DESC"
 	result, err := s.Client.Query(q)
 	if err != nil {
@@ -150,6 +154,12 @@ func (s *DAOImpl) ResultToMessage(search string, result *simpleforce.QueryResult
 		if record["Tracking_Code__c"] != nil {
 			siteId = fmt.Sprintf("%s", record["Tracking_Code__c"])
 		}
+		city := "unknown"
+		state := "state"
+		if record["BillingCity"] != nil && record["BillingState"] != nil {
+			city = fmt.Sprintf("%s", record["BillingCity"])
+			state = fmt.Sprintf("%s", record["BillingState"])
+		}
 
 		accounts = append(accounts, &accountInfo{
 			Website:     fmt.Sprintf("%s", record["Website"]),
@@ -161,6 +171,8 @@ func (s *DAOImpl) ResultToMessage(search string, result *simpleforce.QueryResult
 			Integration: integration,
 			Provider:    provider,
 			SiteId:      siteId,
+			City:        city,
+			State:       state,
 		})
 	}
 	accounts = cleanAccounts(accounts)
@@ -219,7 +231,8 @@ func formatAccountInfos(accountInfos []*accountInfo, search string) *slack.Msg {
 			familymrr = p.Sprintf("$%.2f", ai.FamilyMRR)
 		}
 		mrr = mrr + " (Family MRR: " + familymrr + ")"
-		text := "Rep: " + ai.Manager + "\nMRR: " + mrr + "\nPlatform: " + ai.Platform + "\nIntegration: " + ai.Integration + "\nProvider: " + ai.Provider
+		loc := ai.City + ", " + ai.State
+		text := "Rep: " + ai.Manager + "\nMRR: " + mrr + "\nPlatform: " + ai.Platform + "\nIntegration: " + ai.Integration + "\nProvider: " + ai.Provider + "\nLocation: " + loc
 		msg.Attachments = append(msg.Attachments, slack.Attachment{
 			Color:      "#" + color,
 			Text:       text,
